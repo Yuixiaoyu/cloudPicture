@@ -1,0 +1,68 @@
+server:
+  port: 8090
+  servlet:
+    context-path: /api
+    session:
+      cookie:
+        max-age: 2592000
+spring:
+  application:
+    name: cloud-picture-backend
+  #数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/cloud_picture
+    username: root
+    password: admin
+
+
+  #设置文件上传最大为10MB，但业务逻辑中限制了单次上传最大不能超过3MB
+  servlet:
+    multipart:
+      max-file-size: 10MB
+  #本地使用的配置
+  profiles:
+    active: local
+  #redis配置
+  redis:
+    database: 1
+    port: 6379
+    host: 127.0.0.1
+    password: xxx
+    connect-timeout: 5000
+  #session配置
+  session:
+    store-type: redis
+    #session30天过期
+    timeout: 2592000
+
+mybatis-plus:
+  configuration:
+    # MyBatis 配置
+    map-underscore-to-camel-case: false
+    #在开发环境打印日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDelete #全局逻辑删除字段
+      logic-delete-value: 1 #逻辑已删除值
+      logic-not-delete-value: 0 #逻辑未删除值
+
+knife4j:
+  enable: true
+  openapi:
+    title: cloud-picture
+    version: v1.0a
+    group:
+      default:
+        api-rule: package
+        api-rule-resources:
+          - com.xiaoyu.cloudpicturebackend.controller
+# 对象存储配置（需要从腾讯云获取）
+#cos:
+#  client:
+#    host: xxx
+#    secretId: xxx
+#    secretKey: xxx
+#    region: xxx
+#    bucket: xxx
