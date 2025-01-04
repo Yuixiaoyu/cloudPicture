@@ -1,7 +1,7 @@
 # cloudPicture
 基于Springboot+Vue+COS+WebSocket的云图床
 
-![image-20250104153527510](https://bu.dusays.com/2025/01/04/6778e4eae9726.png)
+![image-20250104153527510](cloud-picture-frontend\public\6778e4eae9726.png)
 
 ### 技术选型：
 
