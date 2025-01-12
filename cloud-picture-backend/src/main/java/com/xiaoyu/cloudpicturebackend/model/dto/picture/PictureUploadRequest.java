@@ -40,5 +40,10 @@ public class PictureUploadRequest implements Serializable {
      */
     private String category;
 
+    /**
+     * 空间 id
+     */
+    private Long spaceId;
+
 
 }
