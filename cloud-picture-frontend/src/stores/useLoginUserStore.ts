@@ -4,6 +4,8 @@ import { ref } from 'vue'
 
 //存储登录用户信息
 export const useLoginUserStore = defineStore('loginUser', () => {
+  let isLogin = ref<boolean>(false)
+  // 登录用户信息
   const loginUser = ref<API.LoginUserVo>({
     userName: '未登录',
   })
@@ -15,6 +17,7 @@ export const useLoginUserStore = defineStore('loginUser', () => {
     console.log(res)
     if (res.data.code === 200 && res.data.data) {
       loginUser.value = res.data.data
+      isLogin.value = true
     }
     //测试用户登录，三秒后自动登录
     // setTimeout(() => {
@@ -30,5 +33,5 @@ export const useLoginUserStore = defineStore('loginUser', () => {
     loginUser.value = newLoginUser
   }
 
-  return { loginUser, setLoginUser, fetchLoginUser }
+  return { loginUser, setLoginUser, fetchLoginUser, isLogin }
 })

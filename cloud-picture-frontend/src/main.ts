@@ -5,6 +5,7 @@ import router from './router'
 import Antd from 'ant-design-vue'
 import 'ant-design-vue/dist/reset.css'
 import '@/access.ts'
+import 'virtual:svg-icons-register'
 
 const app = createApp(App)
 

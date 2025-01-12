@@ -43,9 +43,30 @@ const router = createRouter({
       component: () => import('../pages/admin/PictureManagePage.vue'),
     },
     {
+      path: '/admin/spaceManage',
+      name: '空间管理',
+      component: () => import('../pages/admin/SpaceManagePage.vue'),
+    },
+    {
+      path: '/add_space',
+      name: '创建空间',
+      component: () => import('../pages/AddSpacePage.vue'),
+    },
+    {
+      path: '/my_space',
+      name: '我的空间',
+      component: () => import('../pages/MySpacePage.vue'),
+    },
+    {
       path: '/picture/:id',
       name: '图片详情',
       component: () => import('../pages/PictureDetailPage.vue'),
+      props: true,
+    },
+    {
+      path: '/space/:id',
+      name: '空间详情',
+      component: () => import('../pages/SpaceDetailPage.vue'),
       props: true,
     },
     // {

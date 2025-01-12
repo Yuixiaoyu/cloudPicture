@@ -3,14 +3,17 @@
     <h2 style="margin-bottom: 16px">
       {{ route.query?.id ? '编辑图片' : '添加图片' }}
     </h2>
+    <a-typography-paragraph v-if="spaceId" type="secondary">
+      保存至空间：<a :href="`/space/${spaceId}`">{{ spaceId }}</a>
+    </a-typography-paragraph>
     <a-tabs v-model:activeKey="uploadType">
       <a-tab-pane key="file" tab="文件上传">
         <!-- 图片上传组件 -->
-        <PictureUpload :picture="picture" :onSuccess="onSuccess" />
+        <PictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
       </a-tab-pane>
       <a-tab-pane key="url" tab="URL上传" force-render>
         <!-- url上传组件 -->
-        <UrlPictureUpload :picture="picture" :onSuccess="onSuccess" />
+        <UrlPictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
       </a-tab-pane>
     </a-tabs>
 
@@ -65,15 +68,21 @@ import {
 import PictureUpload from '@/components/PictureUpload.vue'
 import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
 import { message } from 'ant-design-vue'
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 const picture = ref<API.PictureVO>()
 const pictureForm = reactive<API.PictureEditRequest>({})
 
 const router = useRouter()
+const route = useRoute()
 
 const uploadType = ref<'file' | 'url'>('file')
+
+//空间id
+const spaceId = computed(() => {
+  return route.query?.spaceId
+})
 
 /**
  * 图片上传成功
@@ -87,13 +96,14 @@ const onSuccess = (newPicture: API.PictureVO) => {
  * 提交表单
  * @param values
  */
-const handleSubmit = async (values: API.PictureEditRequest) => {
+const handleSubmit = async (values: any) => {
   const pictureId = picture.value?.id
   if (!pictureId) {
     return
   }
   const res = await editPictureUsingPost({
     id: pictureId,
+    spaceId: spaceId.value,
     ...values,
   })
   if (res.data.code === 200 && res.data.data) {
@@ -138,7 +148,6 @@ onMounted(() => {
   getTagCategoryOptions()
 })
 
-const route = useRoute()
 //获取老数据
 const getOldPicture = async () => {
   const id = route.query?.id

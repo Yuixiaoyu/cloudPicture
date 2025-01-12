@@ -22,13 +22,7 @@
           <div v-if="userLoginStore.loginUser.id">
             <a-dropdown>
               <a-space :wrap="false">
-                <a-avatar
-                  style="color: #f56a00; background-color: #fde3cf"
-                  :size="40"
-                  :src="userLoginStore.loginUser.userAvatar"
-                >
-                  {{ userAvatar }}
-                </a-avatar>
+                <a-avatar :size="40" :src="userAvatar"></a-avatar>
                 <a-tooltip placement="left" :title="userLoginStore.loginUser.userName ?? '无名'">
                   <a-span class="userName">{{
                     userLoginStore.loginUser.userName ?? '无名'
@@ -37,6 +31,13 @@
               </a-space>
               <template #overlay>
                 <a-menu>
+                  <a-menu-item>
+                    <router-link to="/my_space">
+                      <UserOutlined />
+                      我的空间
+                    </router-link>
+                  </a-menu-item>
+
                   <a-menu-item @click="doLoginOut">
                     <LogoutOutlined />
                     退出登录
@@ -55,7 +56,7 @@
 </template>
 <script lang="ts" setup>
 import { computed, h, ref } from 'vue'
-import { HomeOutlined, LogoutOutlined } from '@ant-design/icons-vue'
+import { HomeOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons-vue'
 import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
@@ -87,6 +88,11 @@ const originItems = [
     title: '图片管理',
   },
   {
+    key: '/admin/spaceManage',
+    label: '空间管理',
+    title: '空间管理',
+  },
+  {
     key: 'other',
     label: h('a', { href: 'https://www.fybreeze.cn', target: '_blank' }, '博客'),
     title: '博客',
@@ -96,15 +102,21 @@ const originItems = [
 const router = useRouter()
 
 const userLoginStore = useLoginUserStore()
-//判断当前用户是否有头像，如果有则显示头像，没有则显示用户名第一个字母
 const userAvatar = ref<string>('')
-if (userLoginStore.loginUser) {
-  if (userLoginStore.loginUser.userAvatar) {
-    userAvatar.value = userLoginStore.loginUser.userAvatar
-  } else {
-    userAvatar.value = userLoginStore.loginUser?.userName?.slice(0, 1) ?? ''
-  }
+//判断当前用户是否有头像，如果有则显示头像，没有则显示默认的头像
+if (userLoginStore.loginUser && userLoginStore.loginUser.userAvatar) {
+  userAvatar.value = userLoginStore.loginUser.userAvatar
+} else {
+  userAvatar.value =
+    'https://cloud-picture-1317444877.cos.ap-chengdu.myqcloud.com/public/1867200121277091842/2025-01-11_dm6t2rpf._5jgAUzO8FRcGQPcTFWsEgAAAA.webp'
 }
+//暂未处理，页面刷新后，用户短暂消失，自动获取到用户之后，头像会显示默认头像
+//easy处理，定时器，1.2s后获取用户头像
+setTimeout(() => {
+  if (userLoginStore.loginUser && userLoginStore.loginUser.userAvatar) {
+    userAvatar.value = userLoginStore.loginUser.userAvatar
+  }
+}, 1200)
 
 //根据权限过滤菜单项
 const filterMenu = (menus = [] as MenuProps['items']) => {

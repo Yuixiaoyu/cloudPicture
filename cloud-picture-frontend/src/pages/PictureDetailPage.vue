@@ -114,7 +114,14 @@ const canEdit = computed(() => {
 const router = useRouter()
 //编辑操作
 const doEdit = () => {
-  router.push(`/add_picture?id=${picture.value.id}`)
+  //携带spaceId
+  router.push({
+    path: '/add_picture/',
+    query: {
+      id: picture.value.id,
+      spaceId: picture.value.spaceId,
+    },
+  })
 }
 //删除操作
 const doDelete = () => {

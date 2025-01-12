@@ -1,35 +1,60 @@
 <template>
-  <div id="homePage">
-    <div class="search-bar">
-      <!-- 搜索框 -->
-      <a-input-search
-        v-model:value="searchParams.searchText"
-        placeholder="从海量图片中搜索"
-        enter-button="搜索"
-        size="large"
-        @search="onSearch"
-      />
-    </div>
-    <a-tabs v-model:active-key="selectedCategory" @change="doSearch">
-      <a-tab-pane key="all" tab="全部" />
-      <a-tab-pane v-for="category in categoryList" :key="category" :tab="category" />
-    </a-tabs>
-
-    <div class="tag-bar">
-      <span style="margin-right: 8px">标签:</span>
-      <a-space :size="[0, 8]" wrap>
-        <a-checkable-tag
-          v-for="(tag, index) in tagList"
-          :key="tag"
-          v-model:checked="selectedTagList[index]"
-          @change="doSearch"
-        >
-          {{ tag }}
-        </a-checkable-tag>
+  <div id="spaceDetailPage">
+    <!-- 空间信息 -->
+    <a-flex justify="space-between" align="center">
+      <h2>
+        <a-space>
+          <svg
+            style="height: 42px; width: 40px; margin-bottom: 5px; vertical-align: middle"
+            aria-hidden="true"
+          >
+            <!-- xlink:href执行用哪一个图标,属性值务必#icon-图标名字 -->
+            <!-- use标签fill属性可以设置图标的颜色 -->
+            <use
+              v-if="space.spaceLevel === 0"
+              xlink:href="#icon-common"
+              fill="red"
+              style="width: 100%; height: 100%"
+            ></use>
+            <use
+              v-if="space.spaceLevel === 1"
+              xlink:href="#icon-professional"
+              fill="red"
+              style="width: 100%; height: 100%"
+            ></use>
+            <use
+              v-if="space.spaceLevel === 2"
+              xlink:href="#icon-flagship"
+              fill="red"
+              style="width: 100%; height: 100%"
+            ></use>
+          </svg>
+        </a-space>
+        {{ space.spaceName }}(私有空间)
+      </h2>
+      <a-tooltip :title="`占用空间：${formatSize(space.totalSize)}/ ${formatSize(space.maxSize)}`">
+        <a-space direction="vertical" style="max-width: 50%; min-width: 45%">
+          当前空间已使用:<a-progress
+            :percent="((space.totalSize * 100) / space.maxSize).toFixed(1)"
+            status="active"
+            :stroke-color="{
+              '0%': '#108ee9',
+              '100%': '#87d068',
+            }"
+          />
+        </a-space>
+      </a-tooltip>
+      <a-space size="middle">
+        <a-button type="primary" :href="`/add_picture?spaceId=${space.id}`">+创建图片</a-button>
       </a-space>
-    </div>
+    </a-flex>
     <!-- 图片列表 -->
-    <PictureList :dataList="dataList" :loading="loading" />
+    <PictureList
+      :dataList="dataList"
+      :loading="loading"
+      :show-options="true"
+      :onReload="handleReload"
+    />
     <!-- 底部加载触发器 -->
     <div ref="loadingTrigger" class="loading-trigger">
       <a-spin v-if="loading" />
@@ -38,26 +63,44 @@
   </div>
 </template>
 <script setup lang="ts">
-import {
-  ref,
-  reactive,
-  computed,
-  onMounted,
-  onUnmounted,
-  onActivated,
-  onDeactivated,
-  nextTick,
-} from 'vue'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/store/user'
+import { ref, reactive, onMounted, nextTick, onActivated, onUnmounted, onDeactivated } from 'vue'
+import { getSpaceVoByIdUsingGet } from '@/api/spaceController'
+import { message, Modal } from 'ant-design-vue'
 import {
   listPictureVoByPageUsingPost,
   listPictureTagCategoryUsingGet,
-  listPictureVoByPageWitchCacheUsingPost,
 } from '@/api/pictureController'
-import { message } from 'ant-design-vue'
 import PictureList from '@/components/PictureList.vue'
+import { formatSize } from '@/utils'
 
+interface Props {
+  id: string | number
+}
+
+const props = defineProps<Props>()
+const space = ref<API.SpaceVO>({})
+
+//----------------获取空间详情----------------
+const fetchSpaceDetail = async () => {
+  try {
+    const res = await getSpaceVoByIdUsingGet({
+      id: props.id,
+    })
+    if (res.data.code === 200 && res.data.data) {
+      space.value = res.data.data
+    } else {
+      message.error('获取空间详情失败' + res.data.message)
+    }
+  } catch (error) {
+    message.error('获取空间详情失败' + error)
+  }
+}
+
+onMounted(() => {
+  fetchSpaceDetail()
+})
+
+//----------------获取图片列表----------------
 //定义数据
 const dataList = ref<API.PictureVO[]>([])
 const total = ref<number>(0)
@@ -69,28 +112,12 @@ const searchParams = reactive<API.PictureQueryRequest>({
   sortField: 'createTime',
   sortOrder: 'descend',
 })
-
-const doSearch = async () => {
-  // 重置状态
-  searchParams.current = 1
-  hasMore.value = true
-  dataList.value = []
-  loading.value = false // 确保重置 loading 状态
-
-  // 先获取数据
-  await fetchData()
-
-  // 等待 DOM 更新后重新初始化观察器
-  nextTick(() => {
-    initObserver()
-  })
-}
-
 const hasMore = ref(true)
 const loadingTrigger = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
 
 const fetchData = async () => {
+  console.log('调用fetchdata:>>')
   if (loading.value || !hasMore.value) {
     console.log('跳过加载', {
       loading: loading.value,
@@ -104,6 +131,7 @@ const fetchData = async () => {
   console.log('开始加载数据', searchParams.current)
 
   const params = {
+    spaceId: props.id,
     ...searchParams,
     tags: [] as string[],
   }
@@ -224,22 +252,6 @@ onUnmounted(() => {
     observer = null
   }
 })
-
-const onSearch = async () => {
-  // 重置状态
-  searchParams.current = 1
-  hasMore.value = true
-  dataList.value = []
-  loading.value = false
-
-  // 先获取数据
-  await fetchData()
-
-  // 等待 DOM 更新后重新初始化观察器
-  nextTick(() => {
-    initObserver()
-  })
-}
 const categoryList = ref<string[]>()
 const selectedCategory = ref<string>('all')
 const tagList = ref<string[]>([])
@@ -258,71 +270,27 @@ const getTagCategoryOptions = async () => {
     message.error('获取标签和分类失败' + res.data.message)
   }
 }
+
+// 添加重新加载的处理函数
+const handleReload = async () => {
+  // 重置分页参数
+  searchParams.current = 1
+  hasMore.value = true
+  dataList.value = []
+
+  // 重新加载数据
+  await fetchData()
+
+  // 重新初始化观察器
+  nextTick(() => {
+    initObserver()
+  })
+}
 </script>
 <style scoped>
-.picture-card {
-  position: relative;
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-  cursor: pointer;
-  border-radius: 8px;
+#spaceDetailPage {
 }
-
-.picture-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.picture-card:hover .picture-image {
-  transform: scale(1.05);
-}
-
-.picture-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 16px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.3));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.picture-card:hover .picture-overlay {
-  opacity: 1;
-}
-
-.picture-info {
-  color: white;
-  width: 100%;
-}
-
-.picture-info h3 {
-  margin: 0 0 8px 0;
-  color: white;
-  font-size: 16px;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.picture-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-#homePage .search-bar {
-  max-width: 480px;
-  margin: 0 auto 20px auto;
-}
-
-#homePage .tag-bar {
-  margin: 0 auto 20px auto;
-}
-
-.loading-trigger {
+#spaceDetailPage .loading-trigger {
   height: 50px;
   margin: 20px auto;
   text-align: center;
