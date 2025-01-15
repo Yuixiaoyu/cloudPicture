@@ -183,8 +183,8 @@ public class PictureController {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
         Long spaceId = picture.getSpaceId();
-        if (spaceId != null){
-            pictureService.checkPictureAuth(loginUser,picture);
+        if (spaceId != null) {
+            pictureService.checkPictureAuth(loginUser, picture);
         }
         // 获取封装类
         return ResultUtils.success(pictureService.getPictureVO(picture, request));
@@ -216,18 +216,18 @@ public class PictureController {
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         //空间权限校验
         Long spaceId = pictureQueryRequest.getSpaceId();
-        if (spaceId == null){
+        if (spaceId == null) {
             //公开图库
             //普通用户默认只能看到审核通过的图片
             pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
             pictureQueryRequest.setNullSpaceId(true);
-        }else{
+        } else {
             //私有空间
             User loginUser = userService.getLoginUser(request);
             Space space = spaceService.getById(spaceId);
-            ThrowUtils.throwIf(space == null,ErrorCode.NOT_FOUND_ERROR,"空间不存在");
-            if (!loginUser.getId().equals(space.getUserId())){
-                throw new BusinessException(ErrorCode.NO_AUTH_ERROR,"没有空间权限");
+            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+            if (!loginUser.getId().equals(space.getUserId())) {
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间权限");
             }
         }
         // 查询数据库
@@ -351,7 +351,7 @@ public class PictureController {
             @RequestBody SearchPictureByPictureRequest searchPictureByPictureRequest) {
         ThrowUtils.throwIf(searchPictureByPictureRequest == null, ErrorCode.PARAMS_ERROR);
         Long pictureId = searchPictureByPictureRequest.getPictureId();
-        ThrowUtils.throwIf(pictureId == null||pictureId<=0, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(pictureId == null || pictureId <= 0, ErrorCode.PARAMS_ERROR);
         Picture picture = pictureService.getById(pictureId);
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
         // 解决无法搜索 webp 格式 url
@@ -386,18 +386,17 @@ public class PictureController {
 
     /**
      * 批量编辑图片
+     *
      * @param pictureEditByBatchRequest
      * @param request
      * @return
      */
     @PostMapping("/edit/picture")
-    public BaseResponse<Boolean> editPictureByBatch(@RequestBody PictureEditByBatchRequest pictureEditByBatchRequest,HttpServletRequest request){
-        ThrowUtils.throwIf(pictureEditByBatchRequest == null,ErrorCode.PARAMS_ERROR);
+    public BaseResponse<Boolean> editPictureByBatch(@RequestBody PictureEditByBatchRequest pictureEditByBatchRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(pictureEditByBatchRequest == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
-        pictureService.editPictureByBatch(pictureEditByBatchRequest,loginUser);
+        pictureService.editPictureByBatch(pictureEditByBatchRequest, loginUser);
         return ResultUtils.success(true);
     }
-
-
-
 }
+
