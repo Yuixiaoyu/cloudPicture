@@ -22,3 +22,17 @@ export function downloadImage(url?: string, fileName?: string) {
   }
   saveAs(url, fileName)
 }
+/**
+ *  将颜色转换为#RRGGBB格式
+ * @param input 色值 例如：0xa1c1c1
+ * @returns
+ */
+export function toHexColor(input: string) {
+  console.log('input>>>>' + input)
+  // 去掉 0x 前缀
+  const colorValue = input.replace('0x', '')
+  // 将剩余部分解析为十六进制数，再转成 6 位十六进制字符串
+  const hexColor = parseInt(colorValue, 16).toString(16).padStart(6, '0')
+  // 返回标准 #RRGGBB 格式
+  return `#${hexColor}`
+}

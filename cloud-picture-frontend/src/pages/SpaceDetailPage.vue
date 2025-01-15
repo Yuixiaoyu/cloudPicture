@@ -1,7 +1,7 @@
 <template>
   <div id="spaceDetailPage">
     <!-- 空间信息 -->
-    <a-flex justify="space-between" align="center">
+    <a-flex justify="space-between" align="center" style="width: 88%">
       <h2>
         <a-space>
           <svg
@@ -47,7 +47,18 @@
       <a-space size="middle">
         <a-button type="primary" :href="`/add_picture?spaceId=${space.id}`">+创建图片</a-button>
       </a-space>
+      <a-space size="middle">
+        <a-button type="primary" ghost :icon="h(EditOutlined)" @click="doBatchEdit"
+          >批量编辑</a-button
+        >
+      </a-space>
     </a-flex>
+    <!-- 图片搜索表单 -->
+    <PictureSearchForm :onSearch="onSearch" />
+    <!-- 按颜色搜索 -->
+    <a-form-item label="按颜色搜索" style="margin-top: 16px">
+      <color-picker format="hex" @pureColorChange="onColorChange" />
+    </a-form-item>
     <!-- 图片列表 -->
     <PictureList
       :dataList="dataList"
@@ -60,18 +71,30 @@
       <a-spin v-if="loading" />
       <span v-else-if="!hasMore && dataList.length > 0">没有更多了</span>
     </div>
+    <BatchEditPictureModal
+      ref="batchEditPictureModalRef"
+      :spaceId="id"
+      :pictureList="dataList"
+      :onSuccess="onBatchEditPictureSuccess"
+    />
   </div>
 </template>
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick, onActivated, onUnmounted, onDeactivated } from 'vue'
+import { ref, reactive, onMounted, nextTick, onActivated, onUnmounted, onDeactivated, h } from 'vue'
 import { getSpaceVoByIdUsingGet } from '@/api/spaceController'
 import { message, Modal } from 'ant-design-vue'
 import {
   listPictureVoByPageUsingPost,
   listPictureTagCategoryUsingGet,
+  searchPictureByColorUsingPost,
 } from '@/api/pictureController'
 import PictureList from '@/components/PictureList.vue'
 import { formatSize } from '@/utils'
+import PictureSearchForm from '@/components/PictureSearchForm.vue'
+import { ColorPicker } from 'vue3-colorpicker'
+import 'vue3-colorpicker/style.css'
+import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
+import { EditOutlined } from '@ant-design/icons-vue'
 
 interface Props {
   id: string | number
@@ -99,6 +122,35 @@ const fetchSpaceDetail = async () => {
 onMounted(() => {
   fetchSpaceDetail()
 })
+//按颜色搜索
+const onColorChange = async (color: string) => {
+  loading.value = true
+  const res = await searchPictureByColorUsingPost({
+    picColor: color,
+    spaceId: props.id,
+  })
+  if (res.data.code === 200 && res.data.data) {
+    dataList.value = res.data.data ?? []
+    total.value = res.data.data.length ?? 0
+  } else {
+    message.error('按颜色搜索失败' + res.data.message)
+  }
+  loading.value = false
+}
+
+//批量编辑图片表单
+
+const batchEditPictureModalRef = ref()
+
+const onBatchEditPictureSuccess = () => {
+  fetchData()
+}
+
+const doBatchEdit = () => {
+  if (batchEditPictureModalRef.value) {
+    batchEditPictureModalRef.value.showModal()
+  }
+}
 
 //----------------获取图片列表----------------
 //定义数据
@@ -106,12 +158,34 @@ const dataList = ref<API.PictureVO[]>([])
 const total = ref<number>(0)
 const loading = ref(false)
 
-const searchParams = reactive<API.PictureQueryRequest>({
+const searchParams = ref<API.PictureQueryRequest>({
   current: 1,
   pageSize: 12,
   sortField: 'createTime',
   sortOrder: 'descend',
 })
+
+//搜索
+const onSearch = async (newSearchParams: API.PictureQueryRequest) => {
+  // 重置分页参数
+  searchParams.value = {
+    ...searchParams.value,
+    ...newSearchParams,
+    current: 1, // 重置到第一页
+  }
+  // 重置状态
+  hasMore.value = true
+  dataList.value = []
+
+  // 重新加载数据
+  await fetchData()
+
+  // 重新初始化观察器
+  nextTick(() => {
+    initObserver()
+  })
+}
+
 const hasMore = ref(true)
 const loadingTrigger = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
@@ -122,38 +196,24 @@ const fetchData = async () => {
     console.log('跳过加载', {
       loading: loading.value,
       hasMore: hasMore.value,
-      current: searchParams.current,
+      current: searchParams.value.current,
     })
     return
   }
 
   loading.value = true
-  console.log('开始加载数据', searchParams.current)
+  console.log('开始加载数据', searchParams.value.current)
 
   const params = {
     spaceId: props.id,
-    ...searchParams,
-    tags: [] as string[],
+    ...searchParams.value,
   }
-
-  // 修改分类处理逻辑
-  if (selectedCategory.value !== 'all') {
-    params.category = selectedCategory.value
-  } else {
-    delete params.category // 使用 delete 而不是设置为 undefined
-  }
-
-  selectedTagList.value.forEach((useTag, index) => {
-    if (useTag) {
-      params.tags.push(tagList.value[index])
-    }
-  })
 
   try {
     const res = await listPictureVoByPageUsingPost(params)
     if (res.data.code === 200 && res.data.data) {
       const newData = res.data.data.records ?? []
-      if (searchParams.current === 1) {
+      if (searchParams.value.current === 1) {
         dataList.value = newData
       } else {
         dataList.value = [...dataList.value, ...newData]
@@ -161,10 +221,10 @@ const fetchData = async () => {
       total.value = Number(res.data.data.total) ?? 0
       hasMore.value = dataList.value.length < total.value
       if (hasMore.value) {
-        searchParams.current += 1
+        searchParams.value.current += 1
       }
       console.log('加载完成', {
-        current: searchParams.current,
+        current: searchParams.value.current,
         total: total.value,
         hasMore: hasMore.value,
         dataLength: dataList.value.length,
@@ -274,7 +334,7 @@ const getTagCategoryOptions = async () => {
 // 添加重新加载的处理函数
 const handleReload = async () => {
   // 重置分页参数
-  searchParams.current = 1
+  searchParams.value.current = 1
   hasMore.value = true
   dataList.value = []
 

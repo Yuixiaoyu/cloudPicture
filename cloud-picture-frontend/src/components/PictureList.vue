@@ -12,20 +12,36 @@
             <div class="picture-card" @click="doClickPicture(picture)">
               <img
                 :alt="picture.name"
-                :src="picture.thumbnailUrl ?? picture.url"
+                :src="picture.thumbnailUrl ? picture.thumbnailUrl : picture.url"
                 class="picture-image"
                 loading="lazy"
               />
 
               <div class="action-overlay" v-if="showOptions">
                 <div class="action-buttons">
+                  <a-space class="action-button" @click.stop="doSharePicture(picture)">
+                    <a-tooltip>
+                      <template #title>分享图片</template>
+                      <ShareAltOutlined />
+                    </a-tooltip>
+                  </a-space>
+                  <a-space class="action-button" @click.stop="doSearchPicture(picture)">
+                    <a-tooltip>
+                      <template #title>以图搜图</template>
+                      <SearchOutlined />
+                    </a-tooltip>
+                  </a-space>
                   <a-space class="action-button" @click.stop="doEditPicture(picture)">
-                    <EditOutlined />
-                    <span>编辑</span>
+                    <a-tooltip>
+                      <template #title>编辑图片</template>
+                      <EditOutlined />
+                    </a-tooltip>
                   </a-space>
                   <a-space class="action-button" @click.stop="doDeletePicture(picture)">
-                    <DeleteOutlined />
-                    <span>删除</span>
+                    <a-tooltip>
+                      <template #title>删除图片</template>
+                      <DeleteOutlined />
+                    </a-tooltip>
                   </a-space>
                 </div>
               </div>
@@ -46,13 +62,21 @@
         </a-list-item>
       </template>
     </a-list>
+    <ShareModal ref="shareModalRef" :link="shareLink" />
   </div>
 </template>
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+import {
+  EditOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+  ShareAltOutlined,
+} from '@ant-design/icons-vue'
 import { message, Modal } from 'ant-design-vue'
 import { deletePictureUsingPost } from '@/api/pictureController'
+import ShareModal from './ShareModal.vue'
+import { ref } from 'vue'
 
 interface Props {
   dataList: API.PictureVO[]
@@ -62,6 +86,19 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+// 分享弹窗引用
+const shareModalRef = ref()
+// 分享链接
+const shareLink = ref<string>()
+
+// 分享
+const doSharePicture = (picture: API.PictureVO, e: Event) => {
+  shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.id}`
+  if (shareModalRef.value) {
+    shareModalRef.value.showModal()
+  }
+}
 
 const randomColor = () => {
   const colors = ['#FF6347', '#FFD700', '#008000', '#0000FF', '#800080']
@@ -108,6 +145,10 @@ const doDeletePicture = (picture: API.PictureVO) => {
       }
     },
   })
+}
+const doSearchPicture = (picture: API.PictureVO) => {
+  //打开新的页面
+  window.open(`/search_picture?pictureId=${picture.id}`)
 }
 </script>
 <style scoped>
@@ -219,7 +260,7 @@ const doDeletePicture = (picture: API.PictureVO) => {
 
 .action-button {
   padding: 4px 8px;
-  font-size: 15px;
+  font-size: 16px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -227,7 +268,8 @@ const doDeletePicture = (picture: API.PictureVO) => {
 
 .action-button:hover {
   background-color: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
+  /* font-weight: bold; */
+  transform: scale(1.15);
 }
 
 .action-button :deep(.anticon) {

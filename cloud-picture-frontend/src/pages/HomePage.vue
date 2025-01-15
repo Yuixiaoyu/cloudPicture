@@ -127,6 +127,7 @@ const fetchData = async () => {
       const newData = res.data.data.records ?? []
       if (searchParams.current === 1) {
         dataList.value = newData
+        console.log('dataList>>>', dataList.value)
       } else {
         dataList.value = [...dataList.value, ...newData]
       }

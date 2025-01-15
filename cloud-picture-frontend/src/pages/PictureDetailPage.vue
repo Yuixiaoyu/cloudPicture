@@ -45,6 +45,19 @@
             <a-descriptions-item label="图片宽高比">
               {{ picture.picScale ?? '-' }}
             </a-descriptions-item>
+            <a-descriptions-item label="主色调">
+              <a-space>
+                <div
+                  v-if="picture.picColor"
+                  :style="{
+                    width: '16px',
+                    height: '16px',
+                    backgroundColor: toHexColor(picture.picColor),
+                  }"
+                />
+                {{ picture.picColor ?? '-' }}
+              </a-space>
+            </a-descriptions-item>
             <a-descriptions-item label="上传时间">
               <!-- 将这里的日期进行格式化 -->
               {{ dayjs(picture.createTime).format('YYYY-MM-DD HH:mm:ss') }}
@@ -58,7 +71,15 @@
                 <DownloadOutlined />
               </template>
             </a-button>
-
+            <a-button
+              v-if="canEdit"
+              :icon="h(ShareAltOutlined)"
+              ghost
+              type="primary"
+              @click="doShare"
+            >
+              分享
+            </a-button>
             <a-button v-if="canEdit" :icon="h(EditOutlined)" type="default" @click="doEdit">
               编辑
             </a-button>
@@ -69,27 +90,24 @@
         </a-card>
       </a-col>
     </a-row>
+    <ShareModal ref="shareModalRef" :link="shareLink" />
   </div>
 </template>
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, h } from 'vue'
+import { ref, computed, onMounted, h } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import {
-  listPictureVoByPageUsingPost,
-  listPictureTagCategoryUsingGet,
-  getPictureVoByIdUsingGet,
-  deletePictureUsingPost,
-} from '@/api/pictureController'
+import { getPictureVoByIdUsingGet, deletePictureUsingPost } from '@/api/pictureController'
 import { message, Modal } from 'ant-design-vue'
-import { downloadImage, formatSize } from '@/utils'
+import { downloadImage, formatSize, toHexColor } from '@/utils'
 import dayjs from 'dayjs'
-import { EditOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons-vue'
+import {
+  EditOutlined,
+  DeleteOutlined,
+  DownloadOutlined,
+  ShareAltOutlined,
+} from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
-
-//定义数据
-const dataList = ref<API.PictureVO[]>([])
-const total = ref<number>(0)
-const loading = ref(true)
+import ShareModal from '@/components/ShareModal.vue'
 
 interface Props {
   id: string | number
@@ -143,7 +161,7 @@ const doDelete = () => {
   })
 }
 const doDownload = () => {
-  downloadImage(picture.value.url)
+  downloadImage(picture.value.originalUrl)
 }
 
 const route = useRoute()
@@ -167,6 +185,19 @@ const fetchPictureDetail = async () => {
 onMounted(() => {
   fetchPictureDetail()
 })
+
+// 分享弹窗引用
+const shareModalRef = ref()
+// 分享链接
+const shareLink = ref<string>()
+
+// 分享
+const doShare = () => {
+  shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.value.id}`
+  if (shareModalRef.value) {
+    shareModalRef.value.showModal()
+  }
+}
 </script>
 <style scoped>
 #pictureDetailPage {
