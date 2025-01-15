@@ -4,6 +4,7 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -43,6 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -352,9 +354,50 @@ public class PictureController {
         ThrowUtils.throwIf(pictureId == null||pictureId<=0, ErrorCode.PARAMS_ERROR);
         Picture picture = pictureService.getById(pictureId);
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
-        List<ImageSearchResult> resultList = ImageSearchApiFacade.searchImage(picture.getUrl());
+        // 解决无法搜索 webp 格式 url
+        String searchUrl = Optional.of(picture.getUrls()).map(url -> {
+            if (StringUtils.isBlank(url.getTransferUrl())) {
+                if (StringUtils.isNotBlank(url.getThumbnailUrl()) && !url.getThumbnailUrl().endsWith(".webp")) {
+                    return url.getThumbnailUrl();
+                }
+                return StringUtils.isNotBlank(url.getThumbnailUrl()) ? url.getThumbnailUrl() : url.getUrl();
+            }
+            return url.getTransferUrl();
+        }).filter(StringUtils::isNotBlank).get();
+        List<ImageSearchResult> resultList = ImageSearchApiFacade.searchImage(searchUrl);
         return ResultUtils.success(resultList);
     }
+
+    /**
+     * 颜色搜图
+     */
+    @PostMapping("/search/color")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<List<PictureVO>> searchPictureByColor(
+            @RequestBody SearchPictureByColorRequest searchPictureByColorRequest,
+            HttpServletRequest request) {
+        ThrowUtils.throwIf(searchPictureByColorRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        Long spaceId = searchPictureByColorRequest.getSpaceId();
+        String picColor = searchPictureByColorRequest.getPicColor();
+        return ResultUtils.success(pictureService.searchPictureByColor(spaceId, picColor, loginUser));
+    }
+
+
+    /**
+     * 批量编辑图片
+     * @param pictureEditByBatchRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/edit/picture")
+    public BaseResponse<Boolean> editPictureByBatch(@RequestBody PictureEditByBatchRequest pictureEditByBatchRequest,HttpServletRequest request){
+        ThrowUtils.throwIf(pictureEditByBatchRequest == null,ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        pictureService.editPictureByBatch(pictureEditByBatchRequest,loginUser);
+        return ResultUtils.success(true);
+    }
+
 
 
 }

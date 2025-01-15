@@ -4,13 +4,15 @@ import com.baomidou.mybatisplus.annotation.*;
 
 import java.io.Serializable;
 import java.util.Date;
+
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 
 /**
  * 图片
  * @TableName picture
  */
-@TableName(value ="picture")
+@TableName(value ="picture" ,autoResultMap = true)
 @Data
 public class Picture implements Serializable {
     /**
@@ -20,13 +22,10 @@ public class Picture implements Serializable {
     private Long id;
 
     /**
-     * 图片 url
+     * 用户 URL 信息 (url, thumbnailUrl, originalUrl, transferUrl)
      */
-    private String url;
-    /**
-     * 缩略图 url
-     */
-    private String thumbnailUrl;
+    @TableField(value = "urls", typeHandler = JacksonTypeHandler.class)
+    private Urls urls;
 
     /**
      * 图片名称
@@ -72,6 +71,10 @@ public class Picture implements Serializable {
      * 图片格式
      */
     private String picFormat;
+    /**
+     * 图片主色调
+     */
+    private String picColor;
 
     /**
      * 创建用户 id

@@ -2,10 +2,7 @@ package com.xiaoyu.cloudpicturebackend.manager;
 
 import cn.hutool.core.io.FileUtil;
 import com.qcloud.cos.COSClient;
-import com.qcloud.cos.model.COSObject;
-import com.qcloud.cos.model.GetObjectRequest;
-import com.qcloud.cos.model.PutObjectRequest;
-import com.qcloud.cos.model.PutObjectResult;
+import com.qcloud.cos.model.*;
 import com.qcloud.cos.model.ciModel.persistence.PicOperations;
 import com.xiaoyu.cloudpicturebackend.config.CosClientConfig;
 import org.springframework.stereotype.Component;
@@ -13,6 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,6 +30,7 @@ public class CosManager {
     @Resource
     private CosClientConfig cosClientConfig;
 
+    private final List<String> ALLOW_FILE_TYPE = Arrays.asList("png", "jpg", "jpeg");
 
     /**
      * 上传对象
@@ -84,14 +83,33 @@ public class CosManager {
             String thumbnailKey = FileUtil.mainName(key)+"_thumbnail."+FileUtil.getSuffix(key);
             thumbnailRule.setFileId(thumbnailKey);
             thumbnailRule.setBucket(cosClientConfig.getBucket());
+            // 缩放规则 /thumbnail/<Width>x<Height>>（如果大于原图宽高，则不处理）
             thumbnailRule.setRule(String.format("imageMogr2/thumbnail/%sx%s>",256,256));
             rules.add(thumbnailRule);
         }
-
+        // 图片格式转换 如果不是 png/jpg/jpeg 进行转化成 jpg 格式，方便后面百度图搜图接口的使用
+        if (!ALLOW_FILE_TYPE.contains(FileUtil.getSuffix(key))) {
+            PicOperations.Rule transferRule = new PicOperations.Rule();
+            transferRule.setBucket(cosClientConfig.getBucket());
+            // 转换成 png 格式
+            transferRule.setRule("imageMogr2/format/png");
+            // 存储的 key 的名字  xxx_transfer.png
+            String transferKey = FileUtil.mainName(key) + "_transfer" + ".png";
+            transferRule.setFileId(transferKey);
+            rules.add(transferRule);
+        }
         picOperations.setRules(rules);
         //构造处理参数
         putObjectRequest.setPicOperations(picOperations);
         return cosClient.putObject(putObjectRequest);
+    }
+
+    /**
+     * 获取url域名
+     * @return
+     */
+    public String getBaseUrl() {
+        return cosClientConfig.getHost();
     }
 
 
@@ -102,6 +120,20 @@ public class CosManager {
      */
     public void deleteObject(String key) {
          cosClient.deleteObject(cosClientConfig.getBucket(),key);
+    }
+
+    /**
+     * 删除对象
+     *
+     * @param keys List 集合
+     */
+    public void deleteObjects(List<String> keys) {
+        DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(cosClientConfig.getBucket());
+        List<DeleteObjectsRequest.KeyVersion> keyVersions = new ArrayList<>();
+        deleteObjectsRequest.setKeys(keyVersions);
+        keys.forEach(key -> keyVersions.add(new DeleteObjectsRequest.KeyVersion(key)));
+        deleteObjectsRequest.setKeys(keyVersions);
+        cosClient.deleteObjects(deleteObjectsRequest);
     }
 
 

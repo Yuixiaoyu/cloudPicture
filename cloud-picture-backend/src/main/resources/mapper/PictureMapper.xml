@@ -6,9 +6,9 @@
 
     <resultMap id="BaseResultMap" type="com.xiaoyu.cloudpicturebackend.model.entity.Picture">
         <id property="id" column="id" jdbcType="BIGINT"/>
-        <result property="url" column="url" jdbcType="VARCHAR"/>
-        <result property="thumbnailUrl" column="thumbnailUrl" jdbcType="VARCHAR"/>
-        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="spaceId" column="spaceId" jdbcType="BIGINT"/>
+        <result property="urls" column="urls" jdbcType="JAVA_OBJECT" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="name" column="name" jdbcType="VARCHAR" />
         <result property="introduction" column="introduction" jdbcType="VARCHAR"/>
         <result property="category" column="category" jdbcType="VARCHAR"/>
         <result property="tags" column="tags" jdbcType="VARCHAR"/>
@@ -17,8 +17,8 @@
         <result property="picHeight" column="picHeight" jdbcType="INTEGER"/>
         <result property="picScale" column="picScale" jdbcType="DOUBLE"/>
         <result property="picFormat" column="picFormat" jdbcType="VARCHAR"/>
+        <result property="picColor" column="picColor" jdbcType="VARCHAR"/>
         <result property="userId" column="userId" jdbcType="BIGINT"/>
-        <result property="spaceId" column="spaceId" jdbcType="BIGINT"/>
         <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
         <result property="editTime" column="editTime" jdbcType="TIMESTAMP"/>
         <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
@@ -31,10 +31,10 @@
 
     <!-- ... -->
     <sql id="Base_Column_List">
-        id,url,thumbnailUrl,name,
+        id,urls,name,
         introduction,category,tags,
         picSize,picWidth,picHeight,
-        picScale,picFormat,userId,spaceId,
+        picScale,picFormat,picColor,userId,spaceId,
         createTime,editTime,updateTime,
         isDelete
     </sql>

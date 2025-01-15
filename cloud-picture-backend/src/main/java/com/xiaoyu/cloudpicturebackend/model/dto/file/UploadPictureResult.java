@@ -1,19 +1,15 @@
 package com.xiaoyu.cloudpicturebackend.model.dto.file;
 
+import com.xiaoyu.cloudpicturebackend.model.entity.Urls;
 import lombok.Data;
 
 @Data
-public class UploadPictureResult {  
-  
-    /**  
-     * 图片地址  
-     */  
-    private String url;
+public class UploadPictureResult {
 
     /**
-     * 缩略图 url
+     * url 集合
      */
-    private String thumbnailUrl;
+    private Urls urls;
 
 
     /**  
@@ -44,6 +40,11 @@ public class UploadPictureResult {
     /**  
      * 图片格式  
      */  
-    private String picFormat;  
+    private String picFormat;
+
+    /**
+     * 图片主色调
+     */
+    private String picColor;
   
 }

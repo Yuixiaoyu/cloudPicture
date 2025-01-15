@@ -26,6 +26,10 @@ public class PictureVO implements Serializable {
      * 缩略图 url
      */
     private String thumbnailUrl;
+    /**
+     * 缩略图 url
+     */
+    private String originalUrl;
 
 
     /**  
@@ -71,7 +75,12 @@ public class PictureVO implements Serializable {
     /**  
      * 图片格式  
      */  
-    private String picFormat;  
+    private String picFormat;
+
+    /**
+     * 图片主色调
+     */
+    private String picColor;
   
     /**  
      * 用户 id  
@@ -103,33 +112,38 @@ public class PictureVO implements Serializable {
      */  
     private UserVO user;  
   
-    private static final long serialVersionUID = 1L;  
-  
-    /**  
-     * 封装类转对象  
-     */  
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * 封装类转对象
+     */
     public static Picture voToObj(PictureVO pictureVO) {
-        if (pictureVO == null) {  
-            return null;  
-        }  
-        Picture picture = new Picture();  
+        if (pictureVO == null) {
+            return null;
+        }
+        Picture picture = new Picture();
         BeanUtils.copyProperties(pictureVO, picture);
-        // 类型不同，需要转换  
+        // 类型不同，需要转换
         picture.setTags(JSONUtil.toJsonStr(pictureVO.getTags()));
-        return picture;  
-    }  
-  
-    /**  
-     * 对象转封装类  
-     */  
-    public static PictureVO objToVo(Picture picture) {  
-        if (picture == null) {  
-            return null;  
-        }  
-        PictureVO pictureVO = new PictureVO();  
-        BeanUtils.copyProperties(picture, pictureVO);  
-        // 类型不同，需要转换  
-        pictureVO.setTags(JSONUtil.toList(picture.getTags(), String.class));  
-        return pictureVO;  
-    }  
+        return picture;
+    }
+
+    /**
+     * 对象转封装类
+     */
+    public static PictureVO objToVo(Picture picture) {
+        if (picture == null) {
+            return null;
+        }
+        PictureVO pictureVO = new PictureVO();
+        BeanUtils.copyProperties(picture, pictureVO);
+        // 只设置 url 和 thumbnailUrl 字段返回给前端
+        pictureVO.setUrl(picture.getUrls().getUrl());
+        pictureVO.setThumbnailUrl(picture.getUrls().getThumbnailUrl());
+        pictureVO.setOriginalUrl(picture.getUrls().getOriginalUrl());
+        // 类型不同，需要转换
+        pictureVO.setTags(JSONUtil.toList(picture.getTags(), String.class));
+        return pictureVO;
+    }
+
 }

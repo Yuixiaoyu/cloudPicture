@@ -80,8 +80,8 @@ public class FileManager {
             int picWidth = imageInfo.getWidth();
             int picHeight = imageInfo.getHeight();
             double picScale = NumberUtil.round((double) picWidth / picHeight, 2).doubleValue();
-            //封装返回结果
-            uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);
+            //封装返回结果 ,无法使用
+            //uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);
             uploadPictureResult.setPicName(FileUtil.mainName(originalFilename));
             uploadPictureResult.setPicSize(FileUtil.size(file));
             uploadPictureResult.setPicWidth(picWidth);
