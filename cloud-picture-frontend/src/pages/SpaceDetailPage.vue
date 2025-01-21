@@ -1,7 +1,7 @@
 <template>
   <div id="spaceDetailPage">
     <!-- 空间信息 -->
-    <a-flex justify="space-between" align="center" style="width: 88%">
+    <a-flex justify="space-between" align="center" style="width: 97%">
       <h2>
         <a-space>
           <svg
@@ -46,11 +46,12 @@
       </a-tooltip>
       <a-space size="middle">
         <a-button type="primary" :href="`/add_picture?spaceId=${space.id}`">+创建图片</a-button>
-      </a-space>
-      <a-space size="middle">
-        <a-button type="primary" ghost :icon="h(EditOutlined)" @click="doBatchEdit"
-          >批量编辑</a-button
-        >
+        <a-button :href="`/space_analyze?spaceId=${space.id}`" :icon="h(BarChartOutlined)">
+          空间分析
+        </a-button>
+        <a-button type="primary" ghost :icon="h(EditOutlined)" @click="doBatchEdit">
+          批量编辑
+        </a-button>
       </a-space>
     </a-flex>
     <!-- 图片搜索表单 -->
@@ -94,7 +95,8 @@ import PictureSearchForm from '@/components/PictureSearchForm.vue'
 import { ColorPicker } from 'vue3-colorpicker'
 import 'vue3-colorpicker/style.css'
 import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
-import { EditOutlined } from '@ant-design/icons-vue'
+import { EditOutlined, BarChartOutlined } from '@ant-design/icons-vue'
+import { BarChart } from 'echarts/charts'
 
 interface Props {
   id: string | number

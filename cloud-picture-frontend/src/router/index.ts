@@ -74,6 +74,11 @@ const router = createRouter({
       name: '以图搜图',
       component: () => import('../pages/SearchPicturePage.vue'),
     },
+    {
+      path: '/space_analyze',
+      name: '空间分析',
+      component: () => import('../pages/SpaceAnalyzePage.vue'),
+    },
     // {
     //   path: '/about',
     //   name: 'about',

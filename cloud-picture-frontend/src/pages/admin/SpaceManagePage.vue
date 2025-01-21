@@ -3,7 +3,9 @@
     <a-flex justify="space-between">
       <h2>空间管理</h2>
       <a-space>
-        <a-button type="dashed" href="/add_space">+创建空间</a-button>
+        <a-button type="primary" href="/add_space">+创建空间</a-button>
+        <a-button type="primary" ghost href="/space_analyze?queryPublic=1">分析公共图库</a-button>
+        <a-button type="dashed" href="/space_analyze?queryAll=1">分析全部空间</a-button>
       </a-space>
     </a-flex>
     <!-- 搜索框 -->
@@ -49,6 +51,7 @@
         </template>
         <template v-else-if="column.key === 'action'">
           <a-space wrap>
+            <a-button type="link" :href="`/space_analyze?spaceId=${record.id}`"> 分析 </a-button>
             <a-button type="link" :href="`/add_space?id=${record.id}`"> 编辑 </a-button>
             <a-button danger @click="doDelete(record.id)">删除</a-button>
           </a-space>
@@ -100,6 +103,7 @@ const columns = [
   {
     title: '操作',
     key: 'action',
+    width: 80,
   },
 ]
 

@@ -47,7 +47,7 @@
     <a-table :columns="columns" :data-source="dataList" :pagination="paginaction">
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'url'">
-          <a-image :src="record.url" width="120px;" />
+          <a-image :src="record.urls.url" width="120px;" />
         </template>
         <template v-if="column.dataIndex === 'tags'">
           <a-space wrap>
@@ -221,6 +221,7 @@ const fetchData = async () => {
   })
   if (res.data.code === 200 && res.data.data) {
     dataList.value = res.data.data.records ?? []
+    console.log(dataList.value)
     total.value = Number(res.data.data.total) ?? 0
   } else {
     message.error(res.data.message)
