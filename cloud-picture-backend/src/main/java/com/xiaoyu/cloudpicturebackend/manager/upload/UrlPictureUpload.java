@@ -79,19 +79,57 @@ public class UrlPictureUpload extends PictureUploadTemplate {
         }
     }
 
+
     @Override
     protected String getOriginalFilename(Object inputSource) {
+        /*
         String fileUrl = (String) inputSource;
         URL url = null;
         try {
             url =new URL(fileUrl);
-            fileUrl = url.getFile().substring(url.getFile().lastIndexOf('/'));
+            fileUrl=FileUtil.mainName(url.getFile());
+            //fileUrl = url.getFile().substring(url.getFile().lastIndexOf('/'));
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
         //无法获取完整文件名
         //return FileUtil.mainName(fileUrl);
         return fileUrl;
+         */
+        String fileUrl = (String) inputSource;
+        URL url = null;
+        try {
+            url = new URL(fileUrl);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Invalid URL format: " + fileUrl, e);
+        }
+
+        // 提取文件名
+        String filePath = url.getPath(); // 获取路径部分
+        int lastSlashIndex = filePath.lastIndexOf('/'); // 找到最后一个斜杠的位置
+        String fileName = filePath.substring(lastSlashIndex + 1); // 提取文件名
+
+        // 去除查询参数
+        int queryIndex = fileName.indexOf('?');
+        if (queryIndex != -1) {
+            fileName = fileName.substring(0, queryIndex); // 去掉查询参数部分
+        }
+
+        // 去掉第一个点及其后面的所有字符
+        int firstDotIndex = fileName.indexOf('.');
+        if (firstDotIndex != -1) {
+            fileName = fileName.substring(0, firstDotIndex); // 截取第一个点之前的部分
+        }
+
+        // 过滤非法字符
+        fileName = fileName.replaceAll("[\\\\/:*?\"<>|]", "_"); // 替换非法字符为下划线
+
+        // 如果文件名为空或不合法，提供默认文件名
+        if (fileName.isEmpty() || fileName.length() > 255) { // 限制文件名长度
+            fileName = "default_filename";
+        }
+
+        return fileName;
     }
 
     @Override

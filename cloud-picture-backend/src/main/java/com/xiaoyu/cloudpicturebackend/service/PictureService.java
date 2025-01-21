@@ -3,12 +3,11 @@ package com.xiaoyu.cloudpicturebackend.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.xiaoyu.cloudpicturebackend.api.aliyunai.model.CreateOutPaintingTaskResponse;
 import com.xiaoyu.cloudpicturebackend.model.dto.picture.*;
 import com.xiaoyu.cloudpicturebackend.model.entity.Picture;
 import com.xiaoyu.cloudpicturebackend.model.entity.User;
-import com.xiaoyu.cloudpicturebackend.model.vo.LoginUserVo;
 import com.xiaoyu.cloudpicturebackend.model.vo.PictureVO;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -116,7 +115,6 @@ public interface PictureService extends IService<Picture> {
      */
     void checkPictureAuth(User loginUser,Picture picture);
 
-
     /**
      * 根据颜色搜索图片
      * @param spaceId
@@ -133,5 +131,18 @@ public interface PictureService extends IService<Picture> {
      * @param loginUser
      */
     void editPictureByBatch(PictureEditByBatchRequest pictureEditByBatchRequest,User loginUser);
+
+
+    /**
+     * 创建扩图任务
+     *
+     * @param createPictureOutPaintingTaskRequest
+     * @param loginUser
+     * @return
+     */
+    CreateOutPaintingTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser);
+
+
+
 
 }

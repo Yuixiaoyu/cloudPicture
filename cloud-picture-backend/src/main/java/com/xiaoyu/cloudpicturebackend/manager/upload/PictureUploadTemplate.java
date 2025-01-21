@@ -79,7 +79,7 @@ public abstract class PictureUploadTemplate {
         }
     }
     private String generateImageUploadPath(File file, String uploadPathPrefix) {
-        String originalFilename = FileUtil.getName(file);
+        String originalFilename = FileUtil.mainName(file);
         // 自己拼接文件上传路径，而不是使用原始文件名称，可以增强安全性
         String uploadFilename = String.format("%s_%s.%s", DateUtil.formatDate(new Date()), RandomUtil.randomString(16),
                 originalFilename);

@@ -2,13 +2,15 @@ package com.xiaoyu.cloudpicturebackend.controller;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.xiaoyu.cloudpicturebackend.annotation.AuthCheck;
+import com.xiaoyu.cloudpicturebackend.api.aliyunai.AliYunAiApi;
+import com.xiaoyu.cloudpicturebackend.api.aliyunai.model.CreateOutPaintingTaskResponse;
+import com.xiaoyu.cloudpicturebackend.api.aliyunai.model.GetOutPaintingTaskResponse;
 import com.xiaoyu.cloudpicturebackend.api.imageSearch.ImageSearchApiFacade;
 import com.xiaoyu.cloudpicturebackend.api.imageSearch.model.ImageSearchResult;
 import com.xiaoyu.cloudpicturebackend.common.BaseResponse;
@@ -19,7 +21,6 @@ import com.xiaoyu.cloudpicturebackend.exception.BusinessException;
 import com.xiaoyu.cloudpicturebackend.exception.ErrorCode;
 import com.xiaoyu.cloudpicturebackend.exception.ThrowUtils;
 import com.xiaoyu.cloudpicturebackend.manager.CosManager;
-import com.xiaoyu.cloudpicturebackend.model.dto.file.UploadPictureResult;
 import com.xiaoyu.cloudpicturebackend.model.dto.picture.*;
 import com.xiaoyu.cloudpicturebackend.model.entity.Picture;
 import com.xiaoyu.cloudpicturebackend.model.entity.Space;
@@ -42,7 +43,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -71,6 +71,9 @@ public class PictureController {
 
     @Resource
     private SpaceService spaceService;
+
+    @Resource
+    private AliYunAiApi aliYunAiApi;
 
 
     private final Cache<String, String> LOCAL_CACHE =
@@ -398,5 +401,36 @@ public class PictureController {
         pictureService.editPictureByBatch(pictureEditByBatchRequest, loginUser);
         return ResultUtils.success(true);
     }
+
+    /**
+     * 创建AI扩图任务
+     *
+     * @param createPictureOutPaintingTaskRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/out_painting/create_task")
+    public BaseResponse<CreateOutPaintingTaskResponse> createPictureOutPaintingTask(@RequestBody CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest,
+                                                              HttpServletRequest request) {
+        ThrowUtils.throwIf(createPictureOutPaintingTaskRequest == null || createPictureOutPaintingTaskRequest.getPictureId() == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        CreateOutPaintingTaskResponse response = pictureService.createPictureOutPaintingTask(createPictureOutPaintingTaskRequest, loginUser);
+        return ResultUtils.success(response);
+    }
+
+    /**
+     * 查询AI扩图任务
+     *
+     * @param taskId
+     * @return
+     */
+    @GetMapping("/out_painting/get_task")
+    public BaseResponse<GetOutPaintingTaskResponse> getPictureOutPaintingTask(String taskId) {
+        ThrowUtils.throwIf( StrUtil.isBlank(taskId), ErrorCode.PARAMS_ERROR);
+        GetOutPaintingTaskResponse outPaintingTask = aliYunAiApi.getOutPaintingTask(taskId);
+        return ResultUtils.success(outPaintingTask);
+    }
+
+
 }
 
