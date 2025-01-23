@@ -59,7 +59,7 @@ public class UserController {
     public BaseResponse<LoginUserVo> getLoginUser(HttpServletRequest httpServletRequest) {
         ThrowUtils.throwIf(httpServletRequest==null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(httpServletRequest);
-        LoginUserVo loginUserVo = userService.getLoginUserVo(loginUser);
+        LoginUserVo loginUserVo = userService.getLoginUserVO(loginUser);
         return ResultUtils.success(loginUserVo);
     }
 
@@ -108,7 +108,7 @@ public class UserController {
     public BaseResponse<UserVO> getUserVOById(long id) {
         BaseResponse<User> response = getUserById(id);
         User user = response.getData();
-        return ResultUtils.success(userService.getUserVo(user));
+        return ResultUtils.success(userService.getUserVO(user));
     }
 
     /**

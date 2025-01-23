@@ -43,7 +43,7 @@ public interface UserService extends IService<User> {
      * @param user 用户信息
      * @return 返回脱敏后的用户信息
      */
-    LoginUserVo getLoginUserVo(User user);
+    LoginUserVo getLoginUserVO(User user);
 
 
     /**
@@ -61,7 +61,7 @@ public interface UserService extends IService<User> {
      * @param user 用户信息
      * @return 返回脱敏后的用户信息
      */
-    UserVO getUserVo(User user);
+    UserVO getUserVO(User user);
 
     /**
      * 获取当前登录用户

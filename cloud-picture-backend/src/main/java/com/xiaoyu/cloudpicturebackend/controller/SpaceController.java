@@ -9,6 +9,7 @@ import com.xiaoyu.cloudpicturebackend.constant.UserConstant;
 import com.xiaoyu.cloudpicturebackend.exception.BusinessException;
 import com.xiaoyu.cloudpicturebackend.exception.ErrorCode;
 import com.xiaoyu.cloudpicturebackend.exception.ThrowUtils;
+import com.xiaoyu.cloudpicturebackend.manager.auth.SpaceUserAuthManager;
 import com.xiaoyu.cloudpicturebackend.model.dto.space.*;
 import com.xiaoyu.cloudpicturebackend.model.entity.Space;
 import com.xiaoyu.cloudpicturebackend.model.entity.User;
@@ -45,6 +46,8 @@ public class SpaceController {
 
     @Resource
     private SpaceService spaceService;
+    @Resource
+    private SpaceUserAuthManager spaceUserAuthManager;
 
 
     @PostMapping("/add")
@@ -133,8 +136,12 @@ public class SpaceController {
         // 查询数据库
         Space space = spaceService.getById(id);
         ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+        SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
+        spaceVO.setPermissionList(permissionList);
         // 获取封装类
-        return ResultUtils.success(spaceService.getSpaceVO(space, request));
+        return ResultUtils.success(spaceVO);
     }
 
     /**

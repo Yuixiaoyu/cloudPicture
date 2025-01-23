@@ -99,10 +99,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         if (spaceId != null) {
             Space space = spaceService.getById(spaceId);
             ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+            //改为使用统一的权限校验
             //校验是否有空间权限,仅空间管理员才能上传
-            if (!loginUser.getId().equals(space.getUserId())) {
-                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间访问权限");
-            }
+            //if (!loginUser.getId().equals(space.getUserId())) {
+            //    throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间访问权限");
+            //}
             //校验额度
             if (space.getTotalCount() >= space.getMaxCount()) {
                 throw new BusinessException(ErrorCode.OPERATION_ERROR, "空间条数不足");
@@ -122,10 +123,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         if (pictureId != null) {
             Picture oldPicture = this.getById(pictureId);
             ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
+            //改为使用统一的权限校验
             //仅本人或管理员可更新图片
-            if (!oldPicture.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
-                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-            }
+            //if (!oldPicture.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
+            //    throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+            //}
             /*
             boolean exists = this.lambdaQuery().eq(Picture::getId, pictureId).exists();
             ThrowUtils.throwIf(!exists, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
@@ -301,7 +303,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         if (id != null && id > 0) {
             //用户存在则将用户的信息添加到picture中的userVO属性中
             User user = userService.getById(id);
-            UserVO userVo = userService.getUserVo(user);
+            UserVO userVo = userService.getUserVO(user);
             pictureVO.setUser(userVo);
         }
         return pictureVO;
@@ -333,7 +335,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             if (userIdUserListMap.containsKey(userId)) {
                 user = userIdUserListMap.get(userId).get(0);
             }
-            pictureVO.setUser(userService.getUserVo(user));
+            pictureVO.setUser(userService.getUserVO(user));
         });
         pictureVOPage.setRecords(pictureVOList);
         return pictureVOPage;
@@ -555,8 +557,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         //判断是否存在
         Picture oldPicture = this.getById(pictureId);
         ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
-        //校验权限
-        checkPictureAuth(loginUser, oldPicture);
+        //校验权限,已经改为使用注解鉴权
+        //checkPictureAuth(loginUser, oldPicture);
         //开启事务
         transactionTemplate.execute(status -> {
             //操作数据库
@@ -591,8 +593,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         long id = pictureEditRequest.getId();
         Picture oldPicture = this.getById(id);
         ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
-        // 校验权限
-        this.checkPictureAuth(loginUser, oldPicture);
+        // 校验权限，已经改为使用注解鉴权
+        //this.checkPictureAuth(loginUser, oldPicture);
         //补充审核参数
         this.filePictureParams(picture, loginUser);
         //操作数据库
@@ -707,8 +709,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Long pictureId = createPictureOutPaintingTaskRequest.getPictureId();
         Picture picture = Optional.ofNullable(this.getById(pictureId))
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图片不存在"));
-        //校验权限
-        checkPictureAuth(loginUser,picture);
+        //校验权限，已经改为使用注解鉴权
+        //checkPictureAuth(loginUser,picture);
         //创建扩图任务
         CreateOutPaintingTaskRequest createOutPaintingTaskRequest = new CreateOutPaintingTaskRequest();
         CreateOutPaintingTaskRequest.Input input = new CreateOutPaintingTaskRequest.Input();
