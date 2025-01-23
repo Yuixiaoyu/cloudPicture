@@ -31,13 +31,21 @@
                       <SearchOutlined />
                     </a-tooltip>
                   </a-space>
-                  <a-space class="action-button" @click.stop="doEditPicture(picture)">
+                  <a-space
+                    class="action-button"
+                    v-if="canEdit"
+                    @click.stop="doEditPicture(picture)"
+                  >
                     <a-tooltip>
                       <template #title>编辑图片</template>
                       <EditOutlined />
                     </a-tooltip>
                   </a-space>
-                  <a-space class="action-button" @click.stop="doDeletePicture(picture)">
+                  <a-space
+                    class="action-button"
+                    v-if="canDelete"
+                    @click.stop="doDeletePicture(picture)"
+                  >
                     <a-tooltip>
                       <template #title>删除图片</template>
                       <DeleteOutlined />
@@ -82,10 +90,18 @@ interface Props {
   dataList: API.PictureVO[]
   loading: boolean
   showOptions?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
   onReload?: () => void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  dataList: () => [],
+  loading: false,
+  showOptions: false,
+  canEdit: false,
+  canDelete: false,
+})
 
 // 分享弹窗引用
 const shareModalRef = ref()

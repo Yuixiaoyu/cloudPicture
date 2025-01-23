@@ -30,10 +30,10 @@
             ></use>
           </svg>
         </a-space>
-        {{ space.spaceName }}(私有空间)
+        {{ space.spaceName }}({{ SPACE_TYPE_MAP[space.spaceType] }})
       </h2>
       <a-tooltip :title="`占用空间：${formatSize(space.totalSize)}/ ${formatSize(space.maxSize)}`">
-        <a-space direction="vertical" style="max-width: 50%; min-width: 45%">
+        <a-space direction="vertical" style="max-width: 40%; min-width: 35%">
           当前空间已使用:<a-progress
             :percent="((space.totalSize * 100) / space.maxSize).toFixed(1)"
             status="active"
@@ -45,11 +45,33 @@
         </a-space>
       </a-tooltip>
       <a-space size="middle">
-        <a-button type="primary" :href="`/add_picture?spaceId=${space.id}`">+创建图片</a-button>
-        <a-button :href="`/space_analyze?spaceId=${space.id}`" :icon="h(BarChartOutlined)">
+        <a-button v-if="canUploadPicture" type="primary" :href="`/add_picture?spaceId=${space.id}`">
+          +创建图片
+        </a-button>
+        <a-button
+          v-if="canManageSpaceUser"
+          type="primary"
+          ghost
+          :icon="h(TeamOutlined)"
+          :href="`/spaceUserManage/${id}`"
+        >
+          成员管理
+        </a-button>
+
+        <a-button
+          v-if="canManageSpaceUser"
+          :href="`/space_analyze?spaceId=${space.id}`"
+          :icon="h(BarChartOutlined)"
+        >
           空间分析
         </a-button>
-        <a-button type="primary" ghost :icon="h(EditOutlined)" @click="doBatchEdit">
+        <a-button
+          v-if="canEditPicture"
+          type="primary"
+          ghost
+          :icon="h(EditOutlined)"
+          @click="doBatchEdit"
+        >
           批量编辑
         </a-button>
       </a-space>
@@ -66,6 +88,8 @@
       :loading="loading"
       :show-options="true"
       :onReload="handleReload"
+      :canEdit="canEditPicture"
+      :canDelete="canDeletePicture"
     />
     <!-- 底部加载触发器 -->
     <div ref="loadingTrigger" class="loading-trigger">
@@ -81,7 +105,19 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick, onActivated, onUnmounted, onDeactivated, h } from 'vue'
+import {
+  ref,
+  reactive,
+  onMounted,
+  nextTick,
+  onActivated,
+  onUnmounted,
+  onDeactivated,
+  h,
+  watchEffect,
+  watch,
+  computed,
+} from 'vue'
 import { getSpaceVoByIdUsingGet } from '@/api/spaceController'
 import { message, Modal } from 'ant-design-vue'
 import {
@@ -95,8 +131,9 @@ import PictureSearchForm from '@/components/PictureSearchForm.vue'
 import { ColorPicker } from 'vue3-colorpicker'
 import 'vue3-colorpicker/style.css'
 import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
-import { EditOutlined, BarChartOutlined } from '@ant-design/icons-vue'
+import { EditOutlined, BarChartOutlined, TeamOutlined } from '@ant-design/icons-vue'
 import { BarChart } from 'echarts/charts'
+import { SPACE_PERMISSION_ENUM, SPACE_TYPE_MAP } from '@/constants/space'
 
 interface Props {
   id: string | number
@@ -153,6 +190,19 @@ const doBatchEdit = () => {
     batchEditPictureModalRef.value.showModal()
   }
 }
+
+// 通用权限检查函数
+function createPermissionChecker(permission: string) {
+  return computed(() => {
+    return (space.value.permissionList ?? []).includes(permission)
+  })
+}
+
+// 定义权限检查
+const canManageSpaceUser = createPermissionChecker(SPACE_PERMISSION_ENUM.SPACE_USER_MANAGE)
+const canUploadPicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_UPLOAD)
+const canEditPicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_EDIT)
+const canDeletePicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_DELETE)
 
 //----------------获取图片列表----------------
 //定义数据
@@ -348,10 +398,16 @@ const handleReload = async () => {
     initObserver()
   })
 }
+//空间id改变时，重新加载数据
+watch(
+  () => props.id,
+  (newSpaceId) => {
+    fetchSpaceDetail()
+    handleReload()
+  },
+)
 </script>
 <style scoped>
-#spaceDetailPage {
-}
 #spaceDetailPage .loading-trigger {
   height: 50px;
   margin: 20px auto;

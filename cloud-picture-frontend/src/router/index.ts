@@ -28,6 +28,12 @@ const router = createRouter({
       component: () => import('../pages/admin/UserManagePage.vue'),
     },
     {
+      path: '/spaceUserManage/:id',
+      name: '空间成员管理',
+      component: () => import('../pages/admin/SpaceUserManagePage.vue'),
+      props: true,
+    },
+    {
       path: '/add_picture',
       name: '添加图片',
       component: () => import('../pages/AddPicturePage.vue'),

@@ -71,19 +71,13 @@
                 <DownloadOutlined />
               </template>
             </a-button>
-            <a-button
-              v-if="canEdit"
-              :icon="h(ShareAltOutlined)"
-              ghost
-              type="primary"
-              @click="doShare"
-            >
+            <a-button :icon="h(ShareAltOutlined)" ghost type="primary" @click="doShare">
               分享
             </a-button>
             <a-button v-if="canEdit" :icon="h(EditOutlined)" type="default" @click="doEdit">
               编辑
             </a-button>
-            <a-button v-if="canEdit" :icon="h(DeleteOutlined)" danger @click="doDelete">
+            <a-button v-if="canDelete" :icon="h(DeleteOutlined)" danger @click="doDelete">
               删除
             </a-button>
           </a-space>
@@ -108,6 +102,7 @@ import {
 } from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
 import ShareModal from '@/components/ShareModal.vue'
+import { SPACE_PERMISSION_ENUM } from '@/constants/space'
 
 interface Props {
   id: string | number
@@ -118,17 +113,17 @@ const picture = ref<API.PictureVO>({})
 
 const loginUserStore = useLoginUserStore()
 
-//是否有编辑权限
-const canEdit = computed(() => {
-  const loginUser = loginUserStore.loginUser
-  //未登录不可编辑
-  if (!loginUser.id) {
-    return false
-  }
-  //仅本人或管理员可编辑
-  const user = picture.value.user || {}
-  return loginUser.id === user.id || loginUser.userRole === 'admin'
-})
+// 通用权限检查函数
+function createPermissionChecker(permission: string) {
+  return computed(() => {
+    return (picture.value.permissionList ?? []).includes(permission)
+  })
+}
+
+// 定义权限检查
+const canEdit = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_EDIT)
+const canDelete = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_DELETE)
+
 const router = useRouter()
 //编辑操作
 const doEdit = () => {

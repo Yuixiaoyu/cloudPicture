@@ -5,6 +5,7 @@
 </template>
 <script setup lang="ts">
 import { listSpaceVoByPageUsingPost } from '@/api/spaceController'
+import { SPACE_TYPE_ENUM } from '@/constants/space'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
 import { message } from 'ant-design-vue'
 import { onMounted } from 'vue'
@@ -26,6 +27,7 @@ const checkUserSpace = async () => {
     userId: loginUser.id,
     current: 1,
     pageSize: 1,
+    spaceType: SPACE_TYPE_ENUM.PRIVATE,
   })
   if (res.data.code == 200) {
     if (res.data.data?.records?.length > 0) {

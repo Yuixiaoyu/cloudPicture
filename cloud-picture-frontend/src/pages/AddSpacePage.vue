@@ -1,7 +1,7 @@
 <template>
   <div id="addSpacePage">
     <h2 style="margin-bottom: 16px">
-      {{ route.query?.id ? '编辑空间' : '添加空间' }}
+      {{ route.query?.id ? '编辑' : '添加' }}{{ SPACE_TYPE_MAP[spaceType] }}
     </h2>
 
     <!-- 空间信息表单 -->
@@ -74,10 +74,10 @@ import {
   listSpaceLevelUsingGet,
   updateSpaceUsingPost,
 } from '@/api/spaceController'
-import { SPACE_LEVEL_OPTIONS } from '@/constants/space'
+import { SPACE_LEVEL_OPTIONS, SPACE_TYPE_ENUM, SPACE_TYPE_MAP } from '@/constants/space'
 import { formatSize } from '@/utils'
 import { message } from 'ant-design-vue'
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 const space = ref<API.SpaceVO>()
@@ -87,6 +87,15 @@ const loading = ref(false)
 const router = useRouter()
 
 const spaceLevelList = ref<API.SpaceLevel[]>([])
+
+const route = useRoute()
+// 空间类别,默认为私有空间
+const spaceType = computed(() => {
+  if (route.query?.type) {
+    return Number(route.query.type)
+  }
+  return SPACE_TYPE_ENUM.PRIVATE
+})
 
 const fetchSpaceLevelList = async () => {
   const res = await listSpaceLevelUsingGet()
@@ -119,6 +128,7 @@ const handleSubmit = async (values: API.SpaceAddRequest) => {
     // 新增
     res = await addSpaceUsingPost({
       ...spaceForm,
+      spaceType: spaceType.value,
     })
   }
   if (res.data.code === 200 && res.data.data) {
@@ -133,7 +143,6 @@ const handleSubmit = async (values: API.SpaceAddRequest) => {
   loading.value = false
 }
 
-const route = useRoute()
 //获取老数据
 const getOldSpace = async () => {
   const id = route.query?.id
