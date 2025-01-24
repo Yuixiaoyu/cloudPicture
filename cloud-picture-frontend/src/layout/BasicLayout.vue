@@ -13,7 +13,7 @@
       </a-layout>
 
       <a-layout-footer class="footer">
-        <a href="https://fybreeze.cn/" target="_blank"> 云图床 by xiaoyu </a>
+        <a href="https://fybreeze.cn/" target="_blank"> 智能图库 by xiaoyu </a>
       </a-layout-footer>
     </a-layout>
   </div>

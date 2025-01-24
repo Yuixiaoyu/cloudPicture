@@ -1,6 +1,6 @@
 <template>
   <div id="userRegisterPage">
-    <h2 class="title">云图床--用户注册</h2>
+    <h2 class="title">智能图库--用户注册</h2>
     <div class="desc">企业级智能Ai图库</div>
     <a-form :model="formState" name="basic" autocomplete="off" @finish="handleSubmit">
       <a-form-item
