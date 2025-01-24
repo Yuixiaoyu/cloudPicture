@@ -5,10 +5,13 @@
 
 ![image-20250104153527510](https://github.com/Yuixiaoyu/cloudPicture/blob/main/img/6778e4eae9726.png)
 
+---
+
+
+
 
 ### 技术选型：
 
-<hr>
 
 #### 后端
 
@@ -71,7 +74,7 @@
 
 * #### 实时协同编辑
 
-<video src="https://github.com/Yuixiaoyu/cloudPicture/blob/main/img/video.mp4" controls="controls" width="500" height="300"></video>
+<video src="https://github.com/user-attachments/assets/fae81970-8f00-4543-99ce-3534211cdca5" controls="controls" width="500" height="300"></video>
 
 ### 项目架构
 
